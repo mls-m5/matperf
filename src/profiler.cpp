@@ -158,8 +158,8 @@ struct GlobalData {
 
     void flushLoop();
 
-    void startProfiling() {
-        file.open("matperf_log.json");
+    void startProfiling(const ProfilerSettings &settings) {
+        file.open(settings.outputPath);
         file << "[\n";
         _isRunning = true;
         _dumpThread = std::thread{[this]() { flushLoop(); }};
@@ -276,12 +276,12 @@ ProfileDuration::~ProfileDuration() {
     localProfilingThreadData.exitFrame(name, data2, line);
 }
 
-void enableProfiling() {
+void enableProfiling(const ProfilerSettings &settings) {
     if (shouldEnableProfiling) {
         return;
     }
     shouldEnableProfiling = true;
-    localProfilingThreadData.global->startProfiling();
+    localProfilingThreadData.global->startProfiling(settings);
 }
 
 void profileInstant(std::string_view value) {

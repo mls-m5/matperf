@@ -1,7 +1,12 @@
 #pragma once
 
+#include <filesystem>
 #include <source_location>
 #include <string_view>
+
+struct ProfilerSettings {
+    std::filesystem::path outputPath = "matperf_log.json";
+};
 
 /// Used in scope that you want to profile
 struct ProfileDuration {
@@ -31,7 +36,7 @@ struct ProfileDuration {
 void profileInstant(std::string_view value);
 
 /// Just called once from main
-void enableProfiling();
+void enableProfiling(const ProfilerSettings &settings);
 
 void setProfilerThreadName(std::string name);
 
