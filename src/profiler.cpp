@@ -14,6 +14,9 @@
 
 namespace {
 
+bool shouldEnableProfiling = false;
+bool shouldProfilerWaitOnOverflow = false;
+
 /// Lock free datastructure that allows for one thread to write and another to
 /// read
 template <typename T>
@@ -27,8 +30,13 @@ struct RingBuffer {
     }
 
     void pushBack(T value) {
-        if ((readPos - writePos + data.size()) % data.size() == 1) {
-            throw std::runtime_error{"profiler ringbuffer overflowed"};
+        while ((readPos - writePos + data.size()) % data.size() == 1) {
+            if (shouldProfilerWaitOnOverflow) {
+                std::this_thread::sleep_for(std::chrono::milliseconds{10});
+            }
+            else {
+                throw std::runtime_error{"profiler ringbuffer overflowed"};
+            }
         }
 
         data.at(writePos) = std::move(value);
@@ -107,8 +115,6 @@ struct InstantData {
         std::chrono::high_resolution_clock::now();
 };
 
-bool shouldEnableProfiling = false;
-
 struct ProfiledData {
     /// Just generate a id that starts with 1 and continue upwards, for
     /// readability
@@ -117,7 +123,6 @@ struct ProfiledData {
         return ++id;
     }
 
-    //    std::vector<DebugFrame> frames;
     RingBuffer<DebugFrame> frames;
     std::vector<InstantData> instants;
     int id = generateProfilingThreadId();
@@ -147,7 +152,6 @@ struct GlobalData {
     void flush() {
         auto duration = ProfileDuration{};
         for (auto &data : threadFrameDatas) {
-
             for (auto &one : data->frames.readSpan()) {
                 for (auto &frame : one) {
                     file << frame << ",\n";
@@ -281,6 +285,7 @@ void enableProfiling(const ProfilerSettings &settings) {
         return;
     }
     shouldEnableProfiling = true;
+    shouldProfilerWaitOnOverflow = settings.shouldWaitOnOverflow;
     localProfilingThreadData.global->startProfiling(settings);
 }
 

@@ -6,6 +6,11 @@
 
 struct ProfilerSettings {
     std::filesystem::path outputPath = "matperf_log.json";
+
+    /// Sets if the profiler should wait if to much data is written. Default is
+    /// to crash the program. The reason crashisg is default is because logging
+    /// to fast will write _a lot_ of data to de drive.
+    bool shouldWaitOnOverflow = false;
 };
 
 /// Used in scope that you want to profile
