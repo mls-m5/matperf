@@ -47,3 +47,8 @@ void setProfilerThreadName(std::string name);
 
 #define PROFILE_FUNCTION()                                                     \
     auto profileDurationScopeVariable = ProfileDuration {}
+
+#define PROFILE_PART(name)                                                     \
+    auto profileDurationScopeVariable = ProfileDuration {                      \
+        name                                                                   \
+    }
